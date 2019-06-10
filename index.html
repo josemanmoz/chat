@@ -1,0 +1,208 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="iso-8859-1">
+<title>Chat</title>
+<style type="text/css">
+<!--
+
+body,html{
+	height:100%; /*Siempre es necesario cuando trabajamos con alturas*/
+}
+
+body {
+	font-family: calibri;
+	background-color: #ffffff;
+	font-size:15px;
+	margin: 0;
+	padding: 0;
+	color: #000;
+}
+
+/* ~~ The header is not given a width. It will extend the full width of your layout. ~~ */
+header {
+	width: 95%;
+	height: 15%;
+	border: 1px #ccc solid;
+	margin: 0 auto; /* the auto value on the sides, coupled with the width, centers the layout */
+}
+
+.divConfiguracion{
+	margin: 0px;
+	padding: 0px;
+}
+
+.divEstatus{
+	margin: 0px;
+	padding: 0px;
+	display: none;
+}
+
+.container {
+	width: 95%;
+	height: 68%;
+	border: 1px #ccc solid;
+	background-color:#EBEBEB;
+	margin: 0 auto;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.bottomEnviar{
+	position:absolute;
+	height: 15%;
+	margin: 0 auto; /* the auto value on the sides, coupled with the width, centers the layout */
+	left:2.5%;
+	right:2.5%; 
+	bottom:0px;
+	height:15%;
+	z-index:0;
+	border: 1px #ccc solid;
+	display: none;
+}
+
+.label{
+	width: 75px;
+	display: inline-block;
+}
+
+.mensaje{
+	width: 70%;
+	display: inline-block;
+}
+
+.nombre{
+	width: 70%;
+	display: inline-block;
+}
+
+.servidor{
+	width: 70%;
+	display: inline-block;
+}
+
+.boton_chat{
+	width: 85px;
+}
+
+.boton_enviar{
+	width: 85px;
+	display: inline-block;
+}
+.estatus{
+	font-size: 25px;
+}
+
+.divMensaje{
+	width: 65%;
+	margin: 10px;
+}
+
+.divMensaje .msg_nombre{
+	font-weight: bold;
+}
+
+.divMensaje .texto{
+	border: 1px #ccc solid;
+	background-color: #fff;
+	width: 100%;
+	padding: 15px;
+	text-align: left;
+}
+
+.izquierda{
+	float: left;
+}
+
+.derecha{
+	float: right;
+}
+
+
+</style>
+<!--[if lt IE 9]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = null;
+
+  function configurar(){
+  	$(".divConfiguracion").show(300);
+  	$(".divEstatus").hide(300);
+  }
+
+  function conectar(){
+  	socket = io($(".servidor").val());
+
+  	socket.on('conectado', function (data) {
+	  console.log("nuevo datos:"+data);
+	  $(".estatus").html("Conectado como "+$(".nombre").val());
+	  $(".bottomEnviar").show(300);
+	  $(".divEstatus").show(300);
+	  $(".divConfiguracion").hide(300);
+	});
+
+	socket.on('chat', function (data) {
+	 console.log("chat msg:"+data.mensaje+"  de:"+data.nombre);
+	 addMensaje(data,"izquierda");
+	});
+  }
+
+  function send(){
+  	var _mensaje = $(".mensaje").val();
+  	var _nombre = $(".nombre").val();
+  	console.log("enviara:"+_mensaje);
+  	socket.emit('chat', { mensaje:_mensaje,nombre:_nombre });
+  	addMensaje({ mensaje:_mensaje,nombre:_nombre },"derecha");
+  	$(".mensaje").val("");
+  }
+
+  function addMensaje(data,posicion){
+  	var html = "";
+  	if(posicion == "derecha"){
+  		html = "<div class=\"divMensaje derecha\"><label class=\"msg_nombre derecha\">"+data.nombre+":</label><br/><div class=\"texto\">"+data.mensaje+"</div></div>";
+  	}
+  	else{
+  		html = "<div class=\"divMensaje izquierda\"><label class=\"msg_nombre izquierda\">"+data.nombre+":</label><br/><div class=\"texto\">"+data.mensaje+"</div></div>";
+  	}
+  	
+
+  	$(".container").append(html);
+  }
+
+   
+</script>
+
+</head>
+<body>
+<header>
+	<div class="divConfiguracion">
+		<label class="label">Nombre:</label><input type="text" class="nombre" name="nombre"><br/>
+		<label class="label">Servidor:</label><input type="text" class="servidor" name="servidor" value="http://localhost"><br/>
+		<input type="button" value="Iniciar Chat" class="boton_chat" onclick="conectar();"><br/>
+	</div>
+	<div class="divEstatus">
+		<input type="button" value="Cambiar configuracion" class="boton_configurar" onclick="configurar();"><br/>
+		<label class="estatus"></label><br/>
+	</div>
+	
+	
+</header>
+<div class="container">
+</div>
+<div class="bottomEnviar">
+	<label class="label">Mensaje:</label><input type="text" class="mensaje" name="mensaje">
+	<input type="button" value="Enviar" onclick="send();" class="boton_enviar" name="enviar">
+</div>
+
+<script>
+ $(".servidor").val("http://"+location.host);
+   
+</script>
+
+</body>
+</html>
