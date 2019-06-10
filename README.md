@@ -1,5 +1,4 @@
-# chat
-Chat con socket.io node js
+
 # chat
 Chat con socket.io node js
 
